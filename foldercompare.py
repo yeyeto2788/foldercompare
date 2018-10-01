@@ -38,9 +38,9 @@ def _recursive_dircmp(folder1, folder2, prefix='.'):
     Return a recursive dircmp comparison report as a dictionary.
 
     Args:
-        folder1: Description of parameter `folder1`.
-        folder2: Description of parameter `folder2`.
-        prefix: Description of parameter `prefix`.
+        folder1: String with the directory of left folder.
+        folder2: String with the directory of right folder.
+        prefix: String with the prefix of the directory being searched.
 
     Returns:
         data: Dictionary with the file comparison.
