@@ -5,13 +5,26 @@ import filecmp
 import os
 
 def compare(folder1, folder2, output, output_txt=False, output_csv=False):
-    """Compare contents of two folders and write a report of the results."""
+    """
+    Compare contents of two folders and write a report of the results.
+
+    Args:
+        folder1: String with the directory of left folder.
+        folder2: String with the directory of right folder.
+        output: Description of parameter `output`.
+        output_txt: Boolean variable to create an '.txt' file.
+        output_csv: Boolean variable to create an '.csv' file.
+
+    Returns:
+        Nothing.
+    """
+
 
     report = _recursive_dircmp(folder1, folder2)
 
     # Make filepath names for output OS-agnostic
-    folder1 = folder1.replace('\\', '/')
-    folder2 = folder2.replace('\\', '/')
+    folder1 = os.path.normpath(folder1)
+    folder2 = os.path.normpath(folder2)
 
     if output_txt:
         _write_to_plain_text(folder1, folder2, output, report)
@@ -21,14 +34,25 @@ def compare(folder1, folder2, output, output_txt=False, output_csv=False):
 
 
 def _recursive_dircmp(folder1, folder2, prefix='.'):
-    """Return a recursive dircmp comparison report as a dictionary."""
+    """
+    Return a recursive dircmp comparison report as a dictionary.
+
+    Args:
+        folder1: String with the directory of left folder.
+        folder2: String with the directory of right folder.
+        prefix: String with the prefix of the directory being searched.
+
+    Returns:
+        data: Dictionary with the file comparison.
+    """
+
 
     comparison = filecmp.dircmp(folder1, folder2)
 
     data = {
-        'left': [r'{}/{}'.format(prefix, i) for i in comparison.left_only],
-        'right': [r'{}/{}'.format(prefix, i) for i in comparison.right_only],
-        'both': [r'{}/{}'.format(prefix, i) for i in comparison.common_files],
+        "left": [r"{}{}{}".format(prefix, os.sep, i) for i in comparison.left_only],
+        "right": [r"{}{}{}".format(prefix, os.sep, i) for i in comparison.right_only],
+        "both": [r"{}{}{}".format(prefix, os.sep, i) for i in comparison.common_files],
     }
 
     for datalist in data.values():
@@ -37,7 +61,7 @@ def _recursive_dircmp(folder1, folder2, prefix='.'):
     if comparison.common_dirs:
         for folder in comparison.common_dirs:
             # Update prefix to include new sub_folder
-            prefix += '/' + folder
+            prefix = os.path.normpath(os.path.join(folder1, folder))
 
             # Compare common folder and add results to the report
             sub_folder1 = os.path.join(folder1, folder)
@@ -52,7 +76,19 @@ def _recursive_dircmp(folder1, folder2, prefix='.'):
 
 
 def _write_to_plain_text(folder1, folder2, output, report):
-    """Write the comparison report to a plain text file."""
+    """
+    Write the comparison report to a plain text file.
+
+    Args:
+        folder1: String with the directory of left folder.
+        folder2: String with the directory of right folder.
+        output: String with the directory to write the '.txt' file.
+        report: Dictionary with the data to be written on the file.
+
+    Returns:
+        Nothing.
+    """
+
 
     filename = output + '.txt'
     with open(filename, 'w') as file:
@@ -83,7 +119,19 @@ def _write_to_plain_text(folder1, folder2, output, report):
 
 
 def _write_to_csv(folder1, folder2, output, report):
-    """Write the comparison report to a CSV file for use in Excel."""
+    """
+    Write the comparison report to a CSV file for use in Excel.
+
+    Args:
+        folder1: String with the directory of left folder.
+        folder2: String with the directory of right folder.
+        output: String with the directory to write the '.csv' file.
+        report: Dictionary with the data to be written on the file.
+
+    Returns:
+        Nothing.
+    """
+
 
     filename = output + '.csv'
     with open(filename, 'w') as file:
