@@ -3,6 +3,8 @@
 import csv
 import filecmp
 import os
+import zipfile
+import shutil
 
 def compare(folder1, folder2, output, output_txt=False, output_csv=False):
     """
@@ -19,12 +21,28 @@ def compare(folder1, folder2, output, output_txt=False, output_csv=False):
         Nothing.
     """
 
+    blnRemove_dir = [False, False]
 
-    report = _recursive_dircmp(folder1, folder2)
+    if zipfile.is_zipfile(folder1) or folder1.endswith(".zip"):
+        with zipfile.ZipFile(folder1, 'r') as myzip:
+            unzipped1 = os.path.join(os.path.abspath(os.path.join(folder1, os.pardir)), "folder1")
+            myzip.extractall(unzipped1)
+            folder1 = unzipped1
+            blnRemove_dir[0] = True
+
+    if zipfile.is_zipfile(folder2) or folder2.endswith(".zip"):
+        with zipfile.ZipFile(folder2, 'r') as myzip:
+            unzipped2 = os.path.join(os.path.abspath(os.path.join(folder2, os.pardir)), "folder2")
+            myzip.extractall(unzipped2)
+            folder2 = unzipped2
+            blnRemove_dir[1] = True
+
 
     # Make filepath names for output OS-agnostic
     folder1 = os.path.normpath(folder1)
     folder2 = os.path.normpath(folder2)
+
+    report = _recursive_dircmp(folder1, folder2, folder1, folder2)
 
     if output_txt:
         _write_to_plain_text(folder1, folder2, output, report)
@@ -32,15 +50,58 @@ def compare(folder1, folder2, output, output_txt=False, output_csv=False):
     if output_csv:
         _write_to_csv(folder1, folder2, output, report)
 
+    if blnRemove_dir[0] == True:
+        shutil.rmtree(unzipped1, ignore_errors=True)
 
-def _recursive_dircmp(folder1, folder2, prefix='.'):
+    if blnRemove_dir[1] == True:
+        shutil.rmtree(unzipped2, ignore_errors=True)
+
+def _convert_bytes(num):
+    """
+    This function will convert bytes to KB, MB.
+
+    Args:
+        num: Integer with the number of bytes.
+
+    Returns:
+        String with values converted.
+    """
+
+    for x in ["bytes", "KB", "MB"]:
+        if num < 1024.0:
+            return "%3.2f %s" % (num, x)
+        num /= 1024.0
+
+
+def _file_size(file_path):
+    """
+    This function will return the file size if file exists on the filesystem.
+
+    Args:
+        file_path: String with the file path to chak its size.
+
+    Returns:
+        strReturn: String of the file's size converted.
+    """
+
+    if os.path.isfile(file_path):
+        file_info = os.stat(file_path)
+        strReturn = _convert_bytes(file_info.st_size)
+    else:
+        strReturn = ""
+
+    return strReturn
+
+
+def _recursive_dircmp(folder1, folder2, prefix1='.', prefix2='.'):
     """
     Return a recursive dircmp comparison report as a dictionary.
 
     Args:
         folder1: String with the directory of left folder.
         folder2: String with the directory of right folder.
-        prefix: String with the prefix of the directory being searched.
+        prefix1: String with the prefix of the directory 1 being searched.
+        prefix2: String with the prefix of the directory 2 being searched.
 
     Returns:
         data: Dictionary with the file comparison.
@@ -50,9 +111,9 @@ def _recursive_dircmp(folder1, folder2, prefix='.'):
     comparison = filecmp.dircmp(folder1, folder2)
 
     data = {
-        "left": [r"{}{}{}".format(prefix, os.sep, i) for i in comparison.left_only],
-        "right": [r"{}{}{}".format(prefix, os.sep, i) for i in comparison.right_only],
-        "both": [r"{}{}{}".format(prefix, os.sep, i) for i in comparison.common_files],
+        "left": ["{}{}{}".format(prefix1, os.sep, i) for i in comparison.left_only],
+        "right": ["{}{}{}".format(prefix2, os.sep, i) for i in comparison.right_only],
+        "both": ["{}{}{}***{}{}{}".format(prefix1, os.sep, i, prefix2, os.sep, i) for i in comparison.common_files],
     }
 
     for datalist in data.values():
@@ -61,12 +122,12 @@ def _recursive_dircmp(folder1, folder2, prefix='.'):
     if comparison.common_dirs:
         for folder in comparison.common_dirs:
             # Update prefix to include new sub_folder
-            prefix = os.path.normpath(os.path.join(folder1, folder))
-
+            prefix1 = os.path.normpath(os.path.join(folder1, folder))
+            prefix2 = os.path.normpath(os.path.join(folder2, folder))
             # Compare common folder and add results to the report
             sub_folder1 = os.path.join(folder1, folder)
             sub_folder2 = os.path.join(folder2, folder)
-            sub_report = _recursive_dircmp(sub_folder1, sub_folder2, prefix)
+            sub_report = _recursive_dircmp(sub_folder1, sub_folder2, prefix1, prefix2)
 
             # Add results from sub_report to main report
             for key, value in sub_report.items():
@@ -91,30 +152,34 @@ def _write_to_plain_text(folder1, folder2, output, report):
 
 
     filename = output + '.txt'
-    with open(filename, 'w') as file:
-        file.write('COMPARISON OF FILES BETWEEN FOLDERS:\n')
-        file.write('\tFOLDER 1: {}\n'.format(folder1))
-        file.write('\tFOLDER 2: {}\n'.format(folder2))
-        file.write('\n\n')
+    with open(filename, "w") as file:
+        file.write("COMPARISON OF FILES BETWEEN FOLDERS:\n")
+        file.write("\tFOLDER 1: {}\t\t{}\n".format(folder1, _file_size(folder1)))
+        file.write("\tFOLDER 2: {}\t\t{}\n".format(folder2, _file_size(folder2)))
+        file.write("\n\n")
 
-        file.write('FILES ONLY IN: {}\n'.format(folder1))
-        for item in report['left']:
-            file.write('\t' + item + '\n')
-        if not report['left']:
-            file.write('\tNone\n')
-        file.write('\n\n')
+        file.write("FILES ONLY IN: {}\n".format(folder1))
+        for item in report["left"]:
+            if item is not None:
+                file.write(f"\t{item:<100}|{str(_file_size(os.path.join(folder1, item))):>20}\n")
+        if not report["left"]:
+            file.write("\tNone\n")
+        file.write("\n\n")
 
-        file.write('FILES ONLY IN: {}\n'.format(folder2))
-        for item in report['right']:
-            file.write('\t' + item + '\n')
-        if not report['right']:
-            file.write('\tNone\n')
-        file.write('\n\n')
+        file.write("FILES ONLY IN: {}\n".format(folder2))
+        for item in report["right"]:
+            if item is not None:
+                file.write(f"\t{item:<100}|{str(_file_size(os.path.join(folder2, item))):>20}\n")
+        if not report["right"]:
+            file.write("\tNone\n")
+        file.write("\n\n")
 
-        file.write('FILES IN BOTH FOLDERS:\n')
-        for item in report['both']:
-            file.write('\t' + item + '\n')
-        if not report['both']:
+        file.write("FILES IN BOTH FOLDERS:\n")
+        for item in report["both"]:
+            item1, item2 = item.split("***")
+            file.write(f"\t{item1:<100}|{str(_file_size(os.path.join(folder1, item1))):>20}\n")
+            file.write(f"\t{item2:<100}|{str(_file_size(os.path.join(folder2, item2))):>20}\n")
+        if not report["both"]:
             file.write('\tNone\n')
 
 
@@ -139,17 +204,23 @@ def _write_to_csv(folder1, folder2, output, report):
 
         # Write header data to the first row
         headers = (
-            "Files only in folder '{}'".format(folder1),
-            "Files only in folder '{}'".format(folder2),
+            "Files only in folder \"{}\"".format(folder1),
+            "File size",
+            "Files only in folder \"{}\"".format(folder2),
+            "File size",
             "Files in both folders",
+            "File size",
         )
         csv_writer.writerow(headers)
 
         # Order report data to match with headers
         data = (
-            report['left'],
-            report['right'],
-            report['both'],
+            report["left"],
+            [_file_size(x) for x in report["left"]],
+            report["right"],
+            [_file_size(x) for x in report["right"]],
+            report["both"],
+            [_file_size(x) for x in report["both"]],
         )
 
         # Write comparison data row by row to the CSV

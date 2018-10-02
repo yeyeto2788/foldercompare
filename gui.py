@@ -1,4 +1,6 @@
-"""Lightweight cross-platform graphic interface for folder compare program."""
+"""
+Lightweight cross-platform graphic interface for folder and '.zip' folders compare program.
+"""
 
 import getpass
 import os
@@ -9,7 +11,27 @@ from tkinter import messagebox
 import foldercompare
 
 class FolderComparisonGUI(tk.Frame):
-    """The graphic interface for the application."""
+    """
+    The graphic interface for the application.
+
+    Args:
+        root: Description of parameter `root`.
+
+    Attributes:
+        folder1: String with the path of the folder1 or '.zip' folder1 to compare.
+        folder2: String with the path of the folder2 or '.zip' folder2 to compare.
+        folder_output: String with path where the output files will be located.
+        filename: Name of '.txt' and '.csv' files that will be created.
+        output_as_txt: Boolean to create or not the '.txt' file.
+        output_as_csv: Boolean to create or not the '.txt' file.
+        zip_work: Boolean to activate the selection of '.zip' folders as input for comparison.
+        set_design_options: Function to set the widgets properties before placing them in the GUI.
+        create_widgets: Create the widgets on GUI launch.
+        set_dir_options: Function to set properties for selecting directories.
+        set_file_options: Function to set properties for selecting '.zip' files.
+        root
+    """
+
 
     def __init__(self, root=None):
         tk.Frame.__init__(self, root)
@@ -24,13 +46,21 @@ class FolderComparisonGUI(tk.Frame):
         self.output_as_txt.set(1)
         self.output_as_csv = tk.BooleanVar()
         self.output_as_csv.set(1)
+        self.zip_work = tk.BooleanVar()
+        self.zip_work.set(1)
 
         self.set_design_options()
         self.create_widgets()
-        self.set_action_options()
+        self.set_dir_options()
+        self.set_file_options()
 
     def set_design_options(self):
-        """Configure widget design options before placing them in GUI."""
+        """
+        Configure widget design options before placing them in GUI.
+
+        Returns:
+            Nothing.
+        """
 
         self.root.title("Folder Comparison Tool")
         self.root.minsize(300, 200)
@@ -41,15 +71,24 @@ class FolderComparisonGUI(tk.Frame):
         }
 
     def create_widgets(self):
-        """Create widgets on GUI launch."""
+        """
+        Create widgets on GUI launch.
+
+        Returns:
+            Nothing.
+        """
 
         tk.Label(
             self, text='Folder Comparison Tool', font=16,
             ).pack()
 
+        tk.Checkbutton(
+            self, text='Work with .zip files', variable=self.zip_work,
+        ).pack()
+
         tk.Button(
             self, text='Select Folder 1',
-            command=lambda: self.set_directory(self.folder1),
+            command=lambda: self.define_selection(self.folder1),
             ).pack(**self.button_options)
 
         tk.Label(
@@ -58,7 +97,7 @@ class FolderComparisonGUI(tk.Frame):
 
         tk.Button(
             self, text='Select Folder 2',
-            command=lambda: self.set_directory(self.folder2),
+            command=lambda: self.define_selection(self.folder2),
             ).pack(**self.button_options)
 
         tk.Label(
@@ -98,30 +137,90 @@ class FolderComparisonGUI(tk.Frame):
             self, text='Run', command=self.validate_and_run,
             ).pack(**self.button_options)
 
-    def set_action_options(self):
-        """Configure widget action options after placing them in GUI."""
+    def define_selection(self, variable):
+        """
+        Short summary.
+
+        Args:
+            variable: Description of parameter `variable`.
+
+        Returns:
+            Nothing.
+        """
+        if self.zip_work.get():
+            self.set_filename(variable)
+        else:
+            self.set_directory(variable)
+
+    def set_dir_options(self):
+        """
+        Configure widget action options for the selection of the directory after
+        placing them in GUI.
+
+        Returns:
+            Nothing.
+        """
 
         self.directory_options = {
-            'initialdir': r'C:\Users\{}\Desktop'.format(getpass.getuser()),
-            'mustexist': False,
+            'initialdir': r'{}'.format(os.getcwd()),
             'parent': self.root,
+            'mustexist': False,
             'title': 'Choose a directory',
         }
 
-    def set_directory(self, variable):
-        """Return a selected directory name.
+    def set_file_options(self):
+        """
+        Configure widget action options for the selection of a file after placing
+        them in GUI.
 
-        ARGS:
+        Returns:
+            Nothing.
+        """
+
+        self.file_options = {
+            'initialdir': r'{}'.format(os.getcwd()),
+            'parent': self.root,
+            'filetypes': (("Zip files", "*.zip"), ("all files", "*.*")),
+            'title': 'Choose a .zip folder',
+        }
+
+
+    def set_filename(self, variable):
+        """
+        Return a selected directory name.
+
+        Args:
             variable (tk.Variable): The tkinter variable to save selection as.
+        Returns:
+            Nothing.
+        """
+
+        selection = filedialog.askopenfilename(**self.file_options)
+        variable.set(selection)
+
+    def set_directory(self, variable):
+        """
+        Return a selected directory name.
+
+        Args:
+            variable (tk.Variable): The tkinter variable to save selection as.
+        Returns:
+            Nothing.
         """
 
         selection = filedialog.askdirectory(**self.directory_options)
         variable.set(selection)
 
     def validate_and_run(self):
-        """Run the folder comparison program with user selected data."""
+        """
+        Run the folder comparison program with user selected data, validate the
+        paths or files selected.
 
-        # Validate user inputs savid in tkinter variables
+        Returns:
+            Nothing.
+        """
+
+        # Validate user inputs saved in tkinter variables
         folder1_is_valid = os.path.exists(self.folder1.get())
         folder2_is_valid = os.path.exists(self.folder2.get())
         folder_output_is_valid = os.path.exists(self.folder_output.get())
@@ -131,17 +230,17 @@ class FolderComparisonGUI(tk.Frame):
 
         # Show error if validation failed
         if not folder1_is_valid:
-            messagebox.showerror("Error", "Must select Folder 1")
+            messagebox.showerror("Error", "Folder 1 must be selected")
         elif not folder2_is_valid:
-            messagebox.showerror("Error", "Must select Folder 2")
+            messagebox.showerror("Error", "Folder 2 must be selected")
         elif not folder_output_is_valid:
-            messagebox.showerror("Error", "Must select Output Folder")
+            messagebox.showerror("Error", "Output Folder must be selected")
         elif not output_name_valid:
             messagebox.showerror(
-                "Error", "Must enter a filename for output (excluding path)"
+                "Error", "Please enter a filename for output (excluding path)"
                 )
         elif not output_type_selected:
-            messagebox.showerror("Error", "Must select type(s) of output")
+            messagebox.showerror("Error", "Please select at least one option as output (.csv or .txt)")
         else:
             # Determine name for output file(s)
             folder = self.folder_output.get()
@@ -156,10 +255,10 @@ class FolderComparisonGUI(tk.Frame):
                                       output_csv=self.output_as_csv.get())
             except Exception:
                 messagebox.showerror(
-                    "Error", "An error has occured, please try again."
+                    "Error", "An error has occurred, please try again."
                     )
             else:
-                messagebox.showinfo("Success", "Folder comparison complete")
+                messagebox.showinfo("Success!", "Folder comparison complete")
 
 
 if __name__ == '__main__':
