@@ -208,7 +208,9 @@ def _write_to_csv(folder1, folder2, output, report):
             "File size",
             "Files only in folder \"{}\"".format(folder2),
             "File size",
-            "Files in both folders",
+            "Files in both folders present on \"{}\"".format(folder1),
+            "File size",
+            "Files in both folders present on \"{}\"".format(folder2),
             "File size",
         )
         csv_writer.writerow(headers)
@@ -219,8 +221,10 @@ def _write_to_csv(folder1, folder2, output, report):
             [_file_size(x) for x in report["left"]],
             report["right"],
             [_file_size(x) for x in report["right"]],
-            report["both"],
-            [_file_size(x) for x in report["both"]],
+            [x.split("***")[0] for x in report["both"]],
+            [_file_size(x.split("***")[0]) for x in report["both"]],
+            [x.split("***")[1] for x in report["both"]],
+            [_file_size(x.split("***")[1]) for x in report["both"]],
         )
 
         # Write comparison data row by row to the CSV
