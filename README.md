@@ -73,11 +73,11 @@ To build the `.exe` file, [PyInstaller][pyinstaller] is used to package the scri
 
 ## TODO list:
 
-* Fix tests for new implementations.
-* An `.html` version of the comparison.
-* Port code to Linux based desktop.
-* Wiki page for using the `foldercompare.py` as a module.
-* Add icon to application.
+- [ ] Fix tests for new implementations.
+- [ ] An `.html` version of the comparison.
+- [ ] Port code to Linux based desktop.
+- [ ] Wiki page for using the `foldercompare.py` as a module.
+- [X] ~~Add icon to application.~~
 
 [bash-diff]: http://ss64.com/bash/diff.html
 [blog]: https://roche.io/2016/06/01/comparing-folders-python

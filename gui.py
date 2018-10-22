@@ -36,7 +36,7 @@ class FolderComparisonGUI(tk.Frame):
     def __init__(self, root=None):
         tk.Frame.__init__(self, root)
         self.root = root
-
+        self.root.iconbitmap(default=self.resource_path("icon_bk.ico"))
         # tkinter app variables -- .get() returns False until .set() otherwise
         self.folder1 = tk.StringVar()
         self.folder2 = tk.StringVar()
@@ -53,6 +53,10 @@ class FolderComparisonGUI(tk.Frame):
         self.create_widgets()
         self.set_dir_options()
         self.set_file_options()
+
+    def resource_path(self, relative_path):
+        base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+        return os.path.join(base_path, relative_path)
 
     def set_design_options(self):
         """
