@@ -1,7 +1,7 @@
 backports.shutil-get-terminal-size==1.0.0
 decorator==4.0.9
 future==0.15.2
-ipython==4.2.0
+ipython==7.16.3
 ipython-genutils==0.1.0
 pefile==2016.3.28
 pickleshare==0.7.2
