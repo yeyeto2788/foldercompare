@@ -1,5 +1,5 @@
 # Build the standalone .exe file using pyinstaller
-pyinstaller --onefile --windowed --icon=./Docs/images/icons/ICO/icon_bk.ico --name foldercompare.exe -y ./gui.py
+pyinstaller --onefile --windowed --icon=./assets/images/icons/icon_bk.ico --name foldercompare.exe -y ./gui.py
 
 # Move the created .exe into the top-level folder
 mv ./dist/foldercompare.exe .

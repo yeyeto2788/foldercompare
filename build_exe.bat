@@ -1,7 +1,7 @@
 @echo off
 echo Build the standalone .exe file using pyinstaller
 echo xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-pyinstaller --onefile --windowed --icon=./Docs/images/icons/ICO/icon_bk.ico --name foldercompare.exe -y ./gui.py
+pyinstaller --onefile --windowed --icon=./assets/images/icons/icon_bk.ico --name foldercompare.exe -y ./gui.py
 echo xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 echo Creating .exe file from the spec file
 echo xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx

@@ -6,6 +6,7 @@ import os
 import zipfile
 import shutil
 
+
 def compare(folder1, folder2, output, output_txt=False, output_csv=False):
     """
     Compare contents of two folders and write a report of the results.
@@ -21,22 +22,25 @@ def compare(folder1, folder2, output, output_txt=False, output_csv=False):
         Nothing.
     """
 
-    blnRemove_dir = [False, False]
+    bln_remove_dir = [False, False]
 
     if zipfile.is_zipfile(folder1) or folder1.endswith(".zip"):
-        with zipfile.ZipFile(folder1, 'r') as myzip:
-            unzipped1 = os.path.join(os.path.abspath(os.path.join(folder1, os.pardir)), "folder1")
+        with zipfile.ZipFile(folder1, "r") as myzip:
+            unzipped1 = os.path.join(
+                os.path.abspath(os.path.join(folder1, os.pardir)), "folder1"
+            )
             myzip.extractall(unzipped1)
             folder1 = unzipped1
-            blnRemove_dir[0] = True
+            bln_remove_dir[0] = True
 
     if zipfile.is_zipfile(folder2) or folder2.endswith(".zip"):
-        with zipfile.ZipFile(folder2, 'r') as myzip:
-            unzipped2 = os.path.join(os.path.abspath(os.path.join(folder2, os.pardir)), "folder2")
+        with zipfile.ZipFile(folder2, "r") as myzip:
+            unzipped2 = os.path.join(
+                os.path.abspath(os.path.join(folder2, os.pardir)), "folder2"
+            )
             myzip.extractall(unzipped2)
             folder2 = unzipped2
-            blnRemove_dir[1] = True
-
+            bln_remove_dir[1] = True
 
     # Make filepath names for output OS-agnostic
     folder1 = os.path.normpath(folder1)
@@ -50,11 +54,12 @@ def compare(folder1, folder2, output, output_txt=False, output_csv=False):
     if output_csv:
         _write_to_csv(folder1, folder2, output, report)
 
-    if blnRemove_dir[0] == True:
+    if bln_remove_dir[0]:
         shutil.rmtree(unzipped1, ignore_errors=True)
 
-    if blnRemove_dir[1] == True:
+    if bln_remove_dir[1]:
         shutil.rmtree(unzipped2, ignore_errors=True)
+
 
 def _convert_bytes(num):
     """
@@ -93,7 +98,7 @@ def _file_size(file_path):
     return strReturn
 
 
-def _recursive_dircmp(folder1, folder2, prefix1='.', prefix2='.'):
+def _recursive_dircmp(folder1, folder2, prefix1=".", prefix2="."):
     """
     Return a recursive dircmp comparison report as a dictionary.
 
@@ -107,13 +112,15 @@ def _recursive_dircmp(folder1, folder2, prefix1='.', prefix2='.'):
         data: Dictionary with the file comparison.
     """
 
-
     comparison = filecmp.dircmp(folder1, folder2)
 
     data = {
         "left": ["{}{}{}".format(prefix1, os.sep, i) for i in comparison.left_only],
         "right": ["{}{}{}".format(prefix2, os.sep, i) for i in comparison.right_only],
-        "both": ["{}{}{}***{}{}{}".format(prefix1, os.sep, i, prefix2, os.sep, i) for i in comparison.common_files],
+        "both": [
+            "{}{}{}***{}{}{}".format(prefix1, os.sep, i, prefix2, os.sep, i)
+            for i in comparison.common_files
+        ],
     }
 
     for datalist in data.values():
@@ -150,8 +157,7 @@ def _write_to_plain_text(folder1, folder2, output, report):
         Nothing.
     """
 
-
-    filename = output + '.txt'
+    filename = output + ".txt"
     with open(filename, "w") as file:
         file.write("COMPARISON OF FILES BETWEEN FOLDERS:\n")
         file.write("\tFOLDER 1: {}\t\t{}\n".format(folder1, _file_size(folder1)))
@@ -161,7 +167,9 @@ def _write_to_plain_text(folder1, folder2, output, report):
         file.write("FILES ONLY IN: {}\n".format(folder1))
         for item in report["left"]:
             if item is not None:
-                file.write(f"\t{item:<100}|{str(_file_size(os.path.join(folder1, item))):>20}\n")
+                file.write(
+                    f"\t{item:<100}|{str(_file_size(os.path.join(folder1, item))):>20}\n"
+                )
         if not report["left"]:
             file.write("\tNone\n")
         file.write("\n\n")
@@ -169,7 +177,9 @@ def _write_to_plain_text(folder1, folder2, output, report):
         file.write("FILES ONLY IN: {}\n".format(folder2))
         for item in report["right"]:
             if item is not None:
-                file.write(f"\t{item:<100}|{str(_file_size(os.path.join(folder2, item))):>20}\n")
+                file.write(
+                    f"\t{item:<100}|{str(_file_size(os.path.join(folder2, item))):>20}\n"
+                )
         if not report["right"]:
             file.write("\tNone\n")
         file.write("\n\n")
@@ -177,10 +187,14 @@ def _write_to_plain_text(folder1, folder2, output, report):
         file.write("FILES IN BOTH FOLDERS:\n")
         for item in report["both"]:
             item1, item2 = item.split("***")
-            file.write(f"\t{item1:<100}|{str(_file_size(os.path.join(folder1, item1))):>20}\n")
-            file.write(f"\t{item2:<100}|{str(_file_size(os.path.join(folder2, item2))):>20}\n")
+            file.write(
+                f"\t{item1:<100}|{str(_file_size(os.path.join(folder1, item1))):>20}\n"
+            )
+            file.write(
+                f"\t{item2:<100}|{str(_file_size(os.path.join(folder2, item2))):>20}\n"
+            )
         if not report["both"]:
-            file.write('\tNone\n')
+            file.write("\tNone\n")
 
 
 def _write_to_csv(folder1, folder2, output, report):
@@ -197,20 +211,19 @@ def _write_to_csv(folder1, folder2, output, report):
         Nothing.
     """
 
-
-    filename = output + '.csv'
-    with open(filename, 'w') as file:
-        csv_writer = csv.writer(file, dialect='excel', lineterminator='\r')
+    filename = output + ".csv"
+    with open(filename, "w") as file:
+        csv_writer = csv.writer(file, dialect="excel", lineterminator="\r")
 
         # Write header data to the first row
         headers = (
-            "Files only in folder \"{}\"".format(folder1),
+            'Files only in folder "{}"'.format(folder1),
             "File size",
-            "Files only in folder \"{}\"".format(folder2),
+            'Files only in folder "{}"'.format(folder2),
             "File size",
-            "Files in both folders present on \"{}\"".format(folder1),
+            'Files in both folders present on "{}"'.format(folder1),
             "File size",
-            "Files in both folders present on \"{}\"".format(folder2),
+            'Files in both folders present on "{}"'.format(folder2),
             "File size",
         )
         csv_writer.writerow(headers)

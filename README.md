@@ -12,13 +12,13 @@ Another feature is that the comparison will also show the file size, which is us
 This is how it will do **normal folder** comparison:
 
 <p align="center">
-  <img src="./Docs/images/folders.png" alt="normal folder comparison"  width="300"/>
+  <img src="./assets/images/folders.png" alt="normal folder comparison"  width="300"/>
 </p>
 
 And this is how it will do the **`.zip` folders** comparison:
 
 <p align="center">
-  <img src="./Docs/images/zip_folders.png" alt="normal folder comparison"  width="300"/>
+  <img src="./assets/images/zip_folders.png" alt="normal folder comparison"  width="300"/>
 </p>
 
 **NOTE:**
@@ -27,8 +27,8 @@ Please notice the checkbox being marked to work with `.zip` files, if checkbox i
 And this is how the `.txt` file will look for another comparison:
 ```
 COMPARISON OF FILES BETWEEN FOLDERS:
-	FOLDER 1: D:\Files\Python\folder1		
-	FOLDER 2: D:\Files\Python\folder2		
+	FOLDER 1: D:\Files\Python\folder1
+	FOLDER 2: D:\Files\Python\folder2
 
 
 FILES ONLY IN: D:\Files\Python\folder1

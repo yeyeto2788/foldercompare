@@ -2,13 +2,14 @@
 Lightweight cross-platform graphic interface for folder and '.zip' folders compare program.
 """
 
-import getpass
 import os
 import tkinter as tk
 from tkinter import filedialog
 from tkinter import messagebox
+import sys
 
 import foldercompare
+
 
 class FolderComparisonGUI(tk.Frame):
     """
@@ -32,11 +33,11 @@ class FolderComparisonGUI(tk.Frame):
         root
     """
 
-
     def __init__(self, root=None):
         tk.Frame.__init__(self, root)
         self.root = root
-        self.root.iconbitmap(default=self.resource_path("icon_bk.ico"))
+        get_local = os.getenv("FOLDERCOMPARE_LOCAL", False)
+        self.root.iconbitmap(default=self.resource_path("icon_bk.ico", local=get_local))
         # tkinter app variables -- .get() returns False until .set() otherwise
         self.folder1 = tk.StringVar()
         self.folder2 = tk.StringVar()
@@ -54,8 +55,27 @@ class FolderComparisonGUI(tk.Frame):
         self.set_dir_options()
         self.set_file_options()
 
-    def resource_path(self, relative_path):
-        base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+    def resource_path(self, relative_path: str, local: bool = False):
+        if local:
+            if sys.platform.lower() != "win32":
+                base_path = os.path.join(
+                    os.path.dirname(os.path.abspath(__file__)),
+                    "assets",
+                    "images",
+                    "icons",
+                )
+
+            else:
+                base_path = os.path.join(
+                    os.path.dirname(os.path.abspath(__file__)),
+                    "assets",
+                    "images",
+                    "icons",
+                )
+        else:
+            base_path = getattr(
+                sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__))
+            )
         return os.path.join(base_path, relative_path)
 
     def set_design_options(self):
@@ -69,9 +89,9 @@ class FolderComparisonGUI(tk.Frame):
         self.root.title("Folder Comparison Tool")
         self.root.minsize(300, 200)
         self.button_options = {
-            'fill': tk.constants.BOTH,
-            'padx': 5,
-            'pady': 5,
+            "fill": tk.constants.BOTH,
+            "padx": 5,
+            "pady": 5,
         }
 
     def create_widgets(self):
@@ -83,63 +103,79 @@ class FolderComparisonGUI(tk.Frame):
         """
 
         tk.Label(
-            self, text='Folder Comparison Tool', font=16,
-            ).pack()
+            self,
+            text="Folder Comparison Tool",
+            font=16,
+        ).pack()
 
         tk.Checkbutton(
-            self, text='Work with .zip files', variable=self.zip_work,
+            self,
+            text="Work with .zip files",
+            variable=self.zip_work,
         ).pack()
 
         tk.Button(
-            self, text='Select Folder 1',
+            self,
+            text="Select Folder 1",
             command=lambda: self.define_selection(self.folder1),
-            ).pack(**self.button_options)
+        ).pack(**self.button_options)
 
         tk.Label(
-            self, textvariable=self.folder1, fg="blue",
-            ).pack()
+            self,
+            textvariable=self.folder1,
+            fg="blue",
+        ).pack()
 
         tk.Button(
-            self, text='Select Folder 2',
+            self,
+            text="Select Folder 2",
             command=lambda: self.define_selection(self.folder2),
-            ).pack(**self.button_options)
+        ).pack(**self.button_options)
 
         tk.Label(
-            self, textvariable=self.folder2, fg="blue",
-            ).pack()
+            self,
+            textvariable=self.folder2,
+            fg="blue",
+        ).pack()
 
         tk.Button(
-            self, text='Select Output Folder',
+            self,
+            text="Select Output Folder",
             command=lambda: self.set_directory(self.folder_output),
-            ).pack(**self.button_options)
+        ).pack(**self.button_options)
 
         tk.Label(
-            self, textvariable=self.folder_output, fg="blue",
-            ).pack()
+            self,
+            textvariable=self.folder_output,
+            fg="blue",
+        ).pack()
 
         tk.Label(
-            self, text="Choose a name for output file(s)",
-            ).pack()
+            self,
+            text="Choose a name for output file(s)",
+        ).pack()
 
-        tk.Entry(
-            self, textvariable=self.filename
-            ).pack()
+        tk.Entry(self, textvariable=self.filename).pack()
 
-        tk.Label(
-            self, text='Select type(s) of output:'
-            ).pack()
+        tk.Label(self, text="Select type(s) of output:").pack()
 
         tk.Checkbutton(
-            self, text='.txt', variable=self.output_as_txt,
-            ).pack()
+            self,
+            text=".txt",
+            variable=self.output_as_txt,
+        ).pack()
 
         tk.Checkbutton(
-            self, text='.csv', variable=self.output_as_csv,
-            ).pack()
+            self,
+            text=".csv",
+            variable=self.output_as_csv,
+        ).pack()
 
         tk.Button(
-            self, text='Run', command=self.validate_and_run,
-            ).pack(**self.button_options)
+            self,
+            text="Run",
+            command=self.validate_and_run,
+        ).pack(**self.button_options)
 
     def define_selection(self, variable):
         """
@@ -166,10 +202,10 @@ class FolderComparisonGUI(tk.Frame):
         """
 
         self.directory_options = {
-            'initialdir': r'{}'.format(os.getcwd()),
-            'parent': self.root,
-            'mustexist': False,
-            'title': 'Choose a directory',
+            "initialdir": r"{}".format(os.getcwd()),
+            "parent": self.root,
+            "mustexist": False,
+            "title": "Choose a directory",
         }
 
     def set_file_options(self):
@@ -182,12 +218,11 @@ class FolderComparisonGUI(tk.Frame):
         """
 
         self.file_options = {
-            'initialdir': r'{}'.format(os.getcwd()),
-            'parent': self.root,
-            'filetypes': (("Zip files", "*.zip"), ("all files", "*.*")),
-            'title': 'Choose a .zip folder',
+            "initialdir": r"{}".format(os.getcwd()),
+            "parent": self.root,
+            "filetypes": (("Zip files", "*.zip"), ("all files", "*.*")),
+            "title": "Choose a .zip folder",
         }
-
 
     def set_filename(self, variable):
         """
@@ -229,8 +264,7 @@ class FolderComparisonGUI(tk.Frame):
         folder2_is_valid = os.path.exists(self.folder2.get())
         folder_output_is_valid = os.path.exists(self.folder_output.get())
         output_name_valid = self.filename.get()
-        output_type_selected = (self.output_as_txt.get() or
-                                self.output_as_csv.get())
+        output_type_selected = self.output_as_txt.get() or self.output_as_csv.get()
 
         # Show error if validation failed
         if not folder1_is_valid:
@@ -242,31 +276,40 @@ class FolderComparisonGUI(tk.Frame):
         elif not output_name_valid:
             messagebox.showerror(
                 "Error", "Please enter a filename for output (excluding path)"
-                )
+            )
         elif not output_type_selected:
-            messagebox.showerror("Error", "Please select at least one option as output (.csv or .txt)")
+            messagebox.showerror(
+                "Error", "Please select at least one option as output (.csv or .txt)"
+            )
         else:
             # Determine name for output file(s)
             folder = self.folder_output.get()
-            filename = self.filename.get().split('.')[0]
+            filename = self.filename.get().split(".")[0]
             output_filename = os.path.join(folder, filename)
 
             # Run the folder compare program
             try:
-                foldercompare.compare(self.folder1.get(), self.folder2.get(),
-                                      output_filename,
-                                      output_txt=self.output_as_txt.get(),
-                                      output_csv=self.output_as_csv.get())
+                foldercompare.compare(
+                    self.folder1.get(),
+                    self.folder2.get(),
+                    output_filename,
+                    output_txt=self.output_as_txt.get(),
+                    output_csv=self.output_as_csv.get(),
+                )
             except Exception:
                 messagebox.showerror(
                     "Error", "An error has occurred, please try again."
-                    )
+                )
             else:
                 messagebox.showinfo("Success!", "Folder comparison complete")
 
 
-if __name__ == '__main__':
-    # Start the app in dev mode
+def main():
     ROOT = tk.Tk()
     FolderComparisonGUI(ROOT).pack()
     ROOT.mainloop()
+
+
+if __name__ == "__main__":
+    # Start the app in dev mode
+    main()
